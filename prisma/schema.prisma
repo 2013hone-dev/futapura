@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  displayName   String
+  email         String    @unique
+  password      String?
+  avatarUrl     String?
+  coverUrl      String?
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  posts         Post[]
+  comments      Comment[]
+  reactions     Reaction[]
+  followedBy    Follow[]  @relation("following")
+  following     Follow[]  @relation("follower")
+  circles       CircleMember[]
+  ownedCircles  Circle[]
+  notifications Notification[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  @@unique([followerId, followingId])
+}
+
+model Circle {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  coverUrl    String?
+  isPrivate   Boolean        @default(false)
+  ownerId     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members     CircleMember[]
+  posts       Post[]
+}
+
+model CircleMember {
+  id        String   @id @default(cuid())
+  userId    String
+  circleId  String
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  @@unique([userId, circleId])
+}
+
+model Post {
+  id         String     @id @default(cuid())
+  content    String
+  imageUrl   String?
+  visibility String     @default("public")
+  authorId   String
+  circleId   String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  circle     Circle?    @relation(fields: [circleId], references: [id])
+  comments   Comment[]
+  reactions  Reaction[]
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+  authorId  String
+  postId    String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("replies")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  type      String   @default("like")
+  stampId   String?
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  stamp     Stamp?   @relation(fields: [stampId], references: [id])
+  @@unique([userId, postId, type, stampId])
+}
+
+model StampPack {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  stamps      Stamp[]
+}
+
+model Stamp {
+  id          String     @id @default(cuid())
+  name        String
+  imageUrl    String
+  emoji       String?
+  isAnimated  Boolean    @default(false)
+  packId      String
+  createdAt   DateTime   @default(now())
+  pack        StampPack  @relation(fields: [packId], references: [id])
+  reactions   Reaction[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  content   String
+  isRead    Boolean  @default(false)
+  userId    String
+  actorId   String?
+  postId    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
