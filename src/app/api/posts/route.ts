@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
     include: {
       author: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
       circle: { select: { id: true, name: true } },
-      comments: [],
-      reactions: [],
+      comments: { include: { author: { select: { id: true, username: true, displayName: true, avatarUrl: true } } }, take: 3, orderBy: { createdAt: "desc" as const } },
+      reactions: { include: { stamp: { select: { id: true, name: true, emoji: true } } } },
       _count: { select: { comments: true, reactions: true } },
     },
   });
