@@ -4,28 +4,26 @@ import { getAuthSession } from "@/lib/auth";
 import { Navbar } from "@/components/ui/Navbar";
 import { ToastContainer } from "@/components/ui/Toast";
 import { CircleList } from "@/components/circle/CircleList";
+import { redirect } from "next/navigation";
 
 export default async function CirclesPage() {
   const session = await getAuthSession();
+  if (!session) redirect("/login");
+
+  const ownerId = (session.user as any).id;
   const circles = await prisma.circle.findMany({
+    where: { ownerId },
     include: {
-      owner: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
-      _count: { select: { members: true, posts: true } },
+      _count: { select: { members: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const myId = (session?.user as any)?.id;
-  const myMemberships = myId
-    ? await prisma.circleMember.findMany({ where: { userId: myId }, select: { circleId: true } })
-    : [];
-  const joinedIds = myMemberships.map(m => m.circleId);
-
   return (
     <>
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-6">
-        <CircleList circles={circles} joinedIds={joinedIds} isLoggedIn={!!session} />
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        <CircleList circles={circles} />
       </main>
       <ToastContainer />
     </>

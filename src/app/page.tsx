@@ -6,6 +6,7 @@ import { Feed } from "@/components/post/Feed";
 import { ToastContainer } from "@/components/ui/Toast";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Avatar } from "@/components/ui/Avatar";
 
 export default async function HomePage() {
   const session = await getAuthSession();
@@ -13,12 +14,12 @@ export default async function HomePage() {
 
   const userId = (session.user as any).id;
 
-  // 自分が参加しているサークル一覧
-  const myCircles = await prisma.circleMember.findMany({
-    where: { userId },
-    include: { circle: { select: { id: true, name: true } } },
+  // 自分が作ったサークル（投稿時の公開先選択に使う）
+  const myOwnedCircles = await prisma.circle.findMany({
+    where: { ownerId: userId },
+    select: { id: true, name: true },
+    orderBy: { createdAt: "desc" },
   });
-  const circles = myCircles.map(m => m.circle);
 
   // おすすめユーザー（フォローしていない人）
   const following = await prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } });
@@ -37,10 +38,10 @@ export default async function HomePage() {
         <aside className="hidden lg:block w-56 flex-shrink-0 space-y-4">
           <div className="card p-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">マイサークル</p>
-            {circles.length === 0 ? (
-              <p className="text-sm text-gray-400">まだ参加していません</p>
+            {myOwnedCircles.length === 0 ? (
+              <p className="text-sm text-gray-400">まだ作成していません</p>
             ) : (
-              circles.map(c => (
+              myOwnedCircles.map(c => (
                 <Link key={c.id} href={`/circles/${c.id}`}
                   className="flex items-center gap-2 py-2 text-sm text-gray-700 hover:text-brand-500 transition-colors">
                   <span className="text-base">⭕</span>{c.name}
@@ -48,14 +49,14 @@ export default async function HomePage() {
               ))
             )}
             <Link href="/circles" className="mt-3 block text-xs text-brand-500 hover:underline">
-              サークルを探す →
+              サークルを管理 →
             </Link>
           </div>
         </aside>
 
         {/* Feed */}
         <div className="flex-1 min-w-0">
-          <Feed circles={circles} />
+          <Feed circles={myOwnedCircles} />
         </div>
 
         {/* Right sidebar */}
@@ -67,9 +68,7 @@ export default async function HomePage() {
                 {suggestions.map(u => (
                   <Link key={u.id} href={`/profile/${u.username}`}
                     className="flex items-center gap-3 hover:bg-gray-50 rounded-xl p-1.5 -mx-1.5 transition-colors">
-                    <div className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {u.displayName.slice(0, 2)}
-                    </div>
+                    <Avatar user={u} size={36} />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">{u.displayName}</p>
                       <p className="text-xs text-gray-400 truncate">@{u.username}</p>
