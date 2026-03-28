@@ -6,6 +6,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Feed } from "@/components/post/Feed";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ProfileActions } from "./ProfileActions";
+import { Avatar } from "@/components/ui/Avatar";
 
 export default async function ProfilePage({ params }: { params: { username: string } }) {
   const session = await getAuthSession();
@@ -29,9 +30,6 @@ export default async function ProfilePage({ params }: { params: { username: stri
     isFollowing = !!f;
   }
 
-  const colors = ["#4A90D9","#E67E22","#27AE60","#8E44AD","#C0392B","#16A085"];
-  const bg = colors[user.displayName.charCodeAt(0) % colors.length];
-
   return (
     <>
       <Navbar />
@@ -41,10 +39,11 @@ export default async function ProfilePage({ params }: { params: { username: stri
           <div className="h-32 bg-gradient-to-r from-brand-500 to-purple-500" />
           <div className="px-6 pb-5">
             <div className="flex items-end justify-between -mt-10 mb-4">
-              <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md flex items-center justify-center text-white text-2xl font-bold"
-                style={{ background: bg }}>
-                {user.displayName.slice(0, 2)}
-              </div>
+              <Avatar
+                user={user}
+                size={80}
+                className="border-4 border-white shadow-md rounded-2xl"
+              />
               <ProfileActions
                 username={user.username}
                 isMe={isMe}
