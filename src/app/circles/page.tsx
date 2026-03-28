@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
 import { Navbar } from "@/components/ui/Navbar";

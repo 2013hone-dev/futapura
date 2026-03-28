@@ -48,7 +48,7 @@ export function CircleList({ circles: init, joinedIds: initJoined, isLoggedIn }:
     if (res.ok) {
       const circle = await res.json();
       setCircles(c => [circle, ...c]);
-      setJoined(s => new Set([...s, circle.id]));
+      setJoined(s => { const n = new Set(s); n.add(circle.id); return n; });
       setShowCreate(false);
       setForm({ name: "", description: "", isPrivate: false });
       toast("サークルを作成しました！");
