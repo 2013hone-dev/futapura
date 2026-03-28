@@ -18,11 +18,25 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "ふたぷら - みんなでつながるSNS",
   description: "ふたぷら - みんなでつながるSNS",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ふたぷら",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className={`${noto.variable} ${playfair.variable} font-sans bg-gray-50 min-h-screen`}>
         <Providers>{children}</Providers>
       </body>
