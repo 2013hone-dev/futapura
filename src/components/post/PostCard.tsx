@@ -263,7 +263,12 @@ export function PostCard({ post: initial, onDelete }: { post: Post; onDelete?: (
               <div key={c.id} className="flex gap-2.5 mb-3">
                 <Avatar user={c.author} size={32} />
                 <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
-                  <span className="font-semibold text-sm text-gray-900 mr-2">{c.author.displayName}</span>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="font-semibold text-sm text-gray-900">{c.author.displayName}</span>
+                    <span className="text-xs text-gray-400">
+                      {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true, locale: ja })}
+                    </span>
+                  </div>
                   <span className="text-sm text-gray-700 whitespace-pre-wrap">{c.content}</span>
                 </div>
               </div>

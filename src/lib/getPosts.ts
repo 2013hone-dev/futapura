@@ -5,7 +5,7 @@ export const postInclude = {
   circle: { select: { id: true, name: true } },
   comments: {
     take: 3,
-    orderBy: { createdAt: "desc" as const },
+    orderBy: { createdAt: "asc" as const },
     include: {
       author: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
     },
