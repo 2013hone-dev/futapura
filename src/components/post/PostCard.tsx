@@ -8,6 +8,39 @@ import { Avatar } from "@/components/ui/Avatar";
 import { StampPicker } from "./StampPicker";
 import { toast } from "@/components/ui/Toast";
 
+// YouTube動画IDを抽出
+function extractYouTubeId(text: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// YouTube URLをテキストから除去してクリーンなテキストを返す
+function stripYouTubeUrl(text: string): string {
+  return text
+    .replace(/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?[^\s]*|shorts\/[^\s]*)|youtu\.be\/[^\s]*)/g, "")
+    .trim();
+}
+
+// テキスト内のURLをリンクに変換
+function linkifyText(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    urlRegex.test(part) ? (
+      <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+        className="text-brand-500 hover:underline break-all">
+        {part}
+      </a>
+    ) : part
+  );
+}
+
 type Stamp = { id: string; name: string; emoji: string | null };
 type Reaction = { id: string; type: string; userId: string; stamp: Stamp | null };
 type Comment = {
@@ -98,6 +131,8 @@ export function PostCard({ post: initial, onDelete }: { post: Post; onDelete?: (
   });
 
   const contentTrimmed = post.content.trim();
+  const youtubeId = extractYouTubeId(contentTrimmed);
+  const textWithoutYoutube = youtubeId ? stripYouTubeUrl(contentTrimmed) : contentTrimmed;
 
   return (
     <>
@@ -130,10 +165,25 @@ export function PostCard({ post: initial, onDelete }: { post: Post; onDelete?: (
           )}
         </div>
 
-        {/* テキスト */}
-        {contentTrimmed && contentTrimmed !== " " && (
+        {/* テキスト（YouTube URLは除去して表示） */}
+        {textWithoutYoutube && (
           <div className="px-4 pb-3 text-gray-800 leading-relaxed whitespace-pre-wrap">
-            {contentTrimmed}
+            {linkifyText(textWithoutYoutube)}
+          </div>
+        )}
+
+        {/* YouTube埋め込み */}
+        {youtubeId && (
+          <div className="px-4 pb-3">
+            <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: "56.25%" }}>
+              <iframe
+                className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
+                title="YouTube video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
         )}
 
