@@ -264,7 +264,7 @@ export function PostCard({ post: initial, onDelete }: { post: Post; onDelete?: (
                 <Avatar user={c.author} size={32} />
                 <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                   <span className="font-semibold text-sm text-gray-900 mr-2">{c.author.displayName}</span>
-                  <span className="text-sm text-gray-700">{c.content}</span>
+                  <span className="text-sm text-gray-700 whitespace-pre-wrap">{c.content}</span>
                 </div>
               </div>
             ))}
