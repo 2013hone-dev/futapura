@@ -16,8 +16,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ふたぷら - みんなでつながるSNS",
-  description: "ふたぷら - みんなでつながるSNS",
+  title: "ふたぷら - 生まれたてのSNS",
+  description: "ふたぷら - 生まれたてのSNS",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

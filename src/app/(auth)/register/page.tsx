@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <h1 className="font-display text-4xl font-bold">
             <span className="text-brand-500">ふたぷら</span>
           </h1>
-          <p className="text-gray-500 mt-2 text-sm">みんなでつながるSNS</p>
+          <p className="text-gray-500 mt-2 text-sm">生まれたてのSNS</p>
         </div>
         <div className="card p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">アカウント作成</h2>

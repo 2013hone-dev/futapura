@@ -1,7 +1,7 @@
 {
   "name": "ふたぷら",
   "short_name": "ふたぷら",
-  "description": "みんなでつながるSNS",
+  "description": "生まれたてのSNS",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
