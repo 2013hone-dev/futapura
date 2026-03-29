@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { PostCard } from "./PostCard";
 import { PostComposer } from "./PostComposer";
 import { Spinner } from "@/components/ui/Spinner";
@@ -7,13 +7,25 @@ import { Spinner } from "@/components/ui/Spinner";
 type Post = any;
 type Circle = { id: string; name: string };
 
-export function Feed({ circleId, authorId, circles }: {
-  circleId?: string; authorId?: string; circles?: Circle[];
+export function Feed({
+  circleId,
+  authorId,
+  circles,
+  initialPosts,
+  initialCursor,
+}: {
+  circleId?: string;
+  authorId?: string;
+  circles?: Circle[];
+  initialPosts?: Post[];
+  initialCursor?: string | null;
 }) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
+  const [posts, setPosts] = useState<Post[]>(initialPosts ?? []);
+  const [cursor, setCursor] = useState<string | null>(initialCursor ?? null);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(
+    initialPosts ? initialPosts.length === 20 : true
+  );
 
   const loadPosts = useCallback(async (reset = false) => {
     setLoading(true);
@@ -30,7 +42,12 @@ export function Feed({ circleId, authorId, circles }: {
     setLoading(false);
   }, [circleId, authorId, cursor]);
 
-  useEffect(() => { loadPosts(true); }, [circleId, authorId]);
+  // initialPostsが渡されていない場合のみ初回ロードを実行
+  const [initialized, setInitialized] = useState(!!initialPosts);
+  if (!initialized) {
+    setInitialized(true);
+    loadPosts(true);
+  }
 
   const handleNewPost = (post: Post) => setPosts((p) => [post, ...p]);
   const handleDelete = (id: string) => setPosts((p) => p.filter((x) => x.id !== id));

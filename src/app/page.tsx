@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fetchPosts } from "@/lib/getPosts";
 import { Navbar } from "@/components/ui/Navbar";
 import { Feed } from "@/components/post/Feed";
 import { ToastContainer } from "@/components/ui/Toast";
@@ -14,16 +15,23 @@ export default async function HomePage() {
 
   const userId = (session.user as any).id;
 
-  // 自分が作ったサークル（投稿時の公開先選択に使う）
-  const myOwnedCircles = await prisma.circle.findMany({
-    where: { ownerId: userId },
-    select: { id: true, name: true },
-    orderBy: { createdAt: "desc" },
-  });
+  // すべてのDBクエリを並列実行
+  const [myOwnedCircles, following, initialPostsData] = await Promise.all([
+    prisma.circle.findMany({
+      where: { ownerId: userId },
+      select: { id: true, name: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    }),
+    fetchPosts({ myId: userId, take: 20 }),
+  ]);
+
+  const followingIds = following.map(f => f.followingId);
 
   // おすすめユーザー（フォローしていない人）
-  const following = await prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } });
-  const followingIds = following.map(f => f.followingId);
   const suggestions = await prisma.user.findMany({
     where: { id: { notIn: [...followingIds, userId] } },
     take: 3,
@@ -56,7 +64,11 @@ export default async function HomePage() {
 
         {/* Feed */}
         <div className="flex-1 min-w-0">
-          <Feed circles={myOwnedCircles} />
+          <Feed
+            circles={myOwnedCircles}
+            initialPosts={initialPostsData.posts}
+            initialCursor={initialPostsData.nextCursor}
+          />
         </div>
 
         {/* Right sidebar */}
