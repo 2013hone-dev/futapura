@@ -221,19 +221,31 @@ export function PostCard({ post: initial, onDelete }: { post: Post; onDelete?: (
             {session && (
               <div className="flex gap-2.5 mt-2">
                 <Avatar user={{ displayName: session.user?.name || "?" }} size={32} />
-                <div className="flex-1 flex gap-2">
-                  <input
+                <div className="flex-1 flex flex-col gap-2">
+                  <textarea
                     value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleComment()}
-                    placeholder="コメントを追加..."
-                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+                    onChange={(e) => {
+                      setCommentText(e.target.value);
+                      e.target.style.height = "auto";
+                      e.target.style.height = e.target.scrollHeight + "px";
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleComment();
+                      }
+                    }}
+                    placeholder="コメントを追加... (Shift+Enterで改行)"
+                    rows={1}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 resize-none overflow-hidden"
                   />
-                  <button
-                    onClick={handleComment}
-                    disabled={!commentText.trim() || submitting}
-                    className="btn-primary text-sm px-4 disabled:opacity-50"
-                  >送信</button>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleComment}
+                      disabled={!commentText.trim() || submitting}
+                      className="btn-primary text-sm px-4 disabled:opacity-50"
+                    >送信</button>
+                  </div>
                 </div>
               </div>
             )}

@@ -23,11 +23,20 @@ export default async function ProfilePage({ params }: { params: { username: stri
   const myId = (session?.user as any)?.id;
   const isMe = myId === user.id;
   let isFollowing = false;
+  let myCircles: { id: string; name: string }[] = [];
   if (myId && !isMe) {
-    const f = await prisma.follow.findUnique({
-      where: { followerId_followingId: { followerId: myId, followingId: user.id } },
-    });
-    isFollowing = !!f;
+    const [follow, circles] = await Promise.all([
+      prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: myId, followingId: user.id } },
+      }),
+      prisma.circle.findMany({
+        where: { ownerId: myId },
+        select: { id: true, name: true },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+    isFollowing = !!follow;
+    myCircles = circles;
   }
 
   return (
@@ -49,6 +58,8 @@ export default async function ProfilePage({ params }: { params: { username: stri
                 isMe={isMe}
                 isFollowing={isFollowing}
                 isLoggedIn={!!session}
+                myCircles={myCircles}
+                targetUsername={user.username}
               />
             </div>
             <h1 className="text-xl font-bold text-gray-900">{user.displayName}</h1>

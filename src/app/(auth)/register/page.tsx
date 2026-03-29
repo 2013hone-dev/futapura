@@ -13,10 +13,22 @@ export default function RegisterPage() {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const WEAK_PASSWORDS = ["password","password123","123456","12345678","qwerty","abc123","111111","000000","iloveyou","welcome","monkey","dragon","master","letmein","sunshine","princess","admin","login","pass"];
+
+  const checkPasswordStrength = (pw: string): string | null => {
+    if (pw.length < 8) return "パスワードは8文字以上にしてください";
+    if (WEAK_PASSWORDS.includes(pw.toLowerCase())) return "このパスワードは危険です。より複雑なパスワードを使用してください";
+    if (!/[a-zA-Z]/.test(pw)) return "パスワードには英字を含めてください";
+    if (!/[0-9]/.test(pw)) return "パスワードには数字を含めてください";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const pwError = checkPasswordStrength(form.password);
+    if (pwError) { setError(pwError); setLoading(false); return; }
     const res = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +80,23 @@ export default function RegisterPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
               <input type="password" value={form.password} onChange={set("password")}
-                className="input" placeholder="8文字以上" minLength={8} required />
+                className="input" placeholder="英字・数字を含む8文字以上" minLength={8} required />
+              {form.password.length > 0 && (
+                <div className="mt-1.5">
+                  <div className="flex gap-1 mb-1">
+                    {[1,2,3,4].map(i => {
+                      const len = form.password.length;
+                      const hasLetter = /[a-zA-Z]/.test(form.password);
+                      const hasNum = /[0-9]/.test(form.password);
+                      const hasSymbol = /[^a-zA-Z0-9]/.test(form.password);
+                      const score = (len >= 8 ? 1 : 0) + (hasLetter ? 1 : 0) + (hasNum ? 1 : 0) + (hasSymbol ? 1 : 0);
+                      const color = score <= 1 ? "bg-red-400" : score === 2 ? "bg-orange-400" : score === 3 ? "bg-yellow-400" : "bg-green-400";
+                      return <div key={i} className={`h-1 flex-1 rounded-full ${i <= score ? color : "bg-gray-200"}`} />;
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-400">英字・数字・記号を組み合わせると安全です</p>
+                </div>
+              )}
             </div>
             <button type="submit" disabled={loading}
               className="w-full btn-primary py-3 text-base disabled:opacity-60">
